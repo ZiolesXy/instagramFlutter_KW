@@ -1,49 +1,68 @@
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
 import '../widgets/story_list.dart';
 import '../widgets/post_list.dart';
-import 'login_screen.dart';
-import 'register_screen.dart';
+import 'login_page.dart';
 
-class StoryPostPage extends StatelessWidget {
+class StoryPostPage extends StatefulWidget {
+  @override
+  _StoryPostPageState createState() => _StoryPostPageState();
+}
+
+class _StoryPostPageState extends State<StoryPostPage> {
+  final _authService = AuthService();
+  String? _username;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUser();
+  }
+
+  Future<void> _loadUser() async {
+    final user = await _authService.getCurrentUser();
+    if (user != null) {
+      setState(() {
+        _username = user.username;
+      });
+    }
+  }
+
+  Future<void> _logout() async {
+    await _authService.logout();
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => LoginPage()),
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Login & Register Buttons
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const LoginScreen()),
-                      );
-                    },
-                    child: const Text('Masuk'),
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const RegisterScreen()),
-                      );
-                    },
-                    child: const Text('Daftar'),
-                  ),
-                ],
-              ),
-            ),
-            StoryList(),
-            Expanded(child: PostList()),
-          ],
-        ),
+      appBar: AppBar(
+        title: Text('Instagram KW'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: _logout,
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          // Story List
+          Container(
+            height: 100,
+            child: StoryList(),
+          ),
+          // Divider
+          Divider(height: 1),
+          // Post List
+          Expanded(
+            child: PostList(),
+          ),
+        ],
       ),
     );
   }
